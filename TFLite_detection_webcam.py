@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import sys
-
+from imutils.video import VideoStream
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
 
@@ -66,20 +66,13 @@ width = input_details[0]['shape'][2]
 print("height=", height)
 print("width=", width)
 
-video = cv2.VideoCapture(0)
+video = VideoStream(0).start()
 # Exit if video not opened.
-if not video.isOpened():
-    print("Could not open video")
-    sys.exit()
-
 # Test model on random input data.
 input_shape = input_details[0]['shape']
 
 while True:
-    ok, image_np = video.read()
-    if not ok:
-        print('Cannot read video file')
-        sys.exit()
+    image_np = video.read()
     image_np_x = cv2.resize(image_np, (height, width))
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     input_data = np.expand_dims(image_np_x, axis=0)
