@@ -66,7 +66,7 @@ width = input_details[0]['shape'][2]
 print("height=", height)
 print("width=", width)
 
-video = VideoStream(0).start()
+video = VideoStream('rtsp://admin:Admin123@192.168.100.5:554/Streaming/Channels/101').start()
 # Exit if video not opened.
 # Test model on random input data.
 input_shape = input_details[0]['shape']
@@ -116,7 +116,7 @@ while True:
     else:
         print('num', num)
 
-    cv2.imshow('img', image_np)
+    cv2.imshow('img', cv2.resize(image_np,(1920,1080)))
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
