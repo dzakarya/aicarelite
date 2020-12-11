@@ -9,6 +9,9 @@ from threading import Thread
 import importlib.util
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.lite import TFLiteConverter
+
+TFLiteConverter.from_keras_model_file()
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
