@@ -140,23 +140,24 @@ floating_model = (input_details[0]['dtype'] == np.float32)
 
 input_mean = 127.5
 input_std = 127.5
-model = load_model('resnetapd.h5')
-graph = tf.get_default_graph()
+
+inter = tf.lite.Interpreter(model_path='resnetapd.tflite')
+inputs = inter.get_input_details()
+outputs = inter.get_output_details()
+inter.allocate_tensors()
+print(inputs)
+print(outputs)
+
 def predictin(imgin):
     s = cv2.resize(imgin, (224, 224))
     img = np.array(s)
     img = img.astype('float32')
-    img = np.expand_dims(img, axis=0)
     img = preprocess_input(img)
-    with graph.as_default():
-        output = model.predict(img)
-        if max(output[0]) > 0.95:
-            if output[0][0] > output[0][1]:
-                return "safe"
-            elif output[0][1] > output[0][0]:
-                return 'notsafe'
-        else:
-            return "waiting"
+    print(img.shape)
+    inter.set_tensor(inputs[0]['index'],[img])
+    inter.invoke()
+    output_data = inter.get_tensor(outputs[0]['index'])
+    return str(output_data)
 
 # Initialize frame rate calculation
 frame_rate_calc = 1
