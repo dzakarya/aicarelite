@@ -9,9 +9,6 @@ from threading import Thread
 import importlib.util
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input
-from tensorflow.lite import TFLiteConverter
-
-TFLiteConverter.from_keras_model_file()
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
@@ -19,7 +16,7 @@ class VideoStream:
 
     def __init__(self, resolution=(1920, 1080), framerate=30):
         # Initialize the PiCamera and the camera image stream
-        self.stream = cv2.VideoCapture('rtsp://admin:Admin123@192.168.100.5:554/Streaming/Channels/101')
+        self.stream = cv2.VideoCapture(0)
         ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         ret = self.stream.set(3, resolution[0])
         ret = self.stream.set(4, resolution[1])
@@ -58,8 +55,6 @@ class VideoStream:
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('--modeldir', help='Folder the .tflite file is located in',
-                    required=True)
 parser.add_argument('--graph', help='Name of the .tflite file, if different than detect.tflite',
                     default='detect.tflite')
 parser.add_argument('--labels', help='Name of the labelmap file, if different than labelmap.txt',
@@ -74,7 +69,7 @@ parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed u
 
 args = parser.parse_args()
 
-MODEL_NAME = args.modeldir
+MODEL_NAME = 'litecoco'
 GRAPH_NAME = args.graph
 LABELMAP_NAME = args.labels
 min_conf_threshold = float(args.threshold)
@@ -159,8 +154,14 @@ def predictin(imgin):
     print(img.shape)
     inter.set_tensor(inputs[0]['index'],[img])
     inter.invoke()
-    output_data = inter.get_tensor(outputs[0]['index'])
-    return str(output_data)
+    output = inter.get_tensor(outputs[0]['index'])
+    if max(output[0]) > 0.5:
+        if output[0][0] > output[0][1]:
+            return "safe"
+        elif output[0][1] > output[0][0]:
+            return 'notsafe'
+    else:
+        return "waiting"
 
 # Initialize frame rate calculation
 frame_rate_calc = 1
